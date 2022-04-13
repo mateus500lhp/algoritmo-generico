@@ -1,6 +1,10 @@
 # coding: utf-8
 import math
 import random
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 def func_obj(x):
 
@@ -98,7 +102,6 @@ def cruzamento(pop, npop, pop_intermediaria, vencedor1, vencedor2, dimensao, pre
     mutacao(pop_intermediaria, npop, pm, dimensao, precisao)
     
 
-
 def mutacao(pop_intermediaria, npop, pm, dimensao, precisao):
     for i in range(0, len(pop_intermediaria)):
         for j in range(0, precisao*dimensao-1):
@@ -110,30 +113,68 @@ def mutacao(pop_intermediaria, npop, pm, dimensao, precisao):
                     pop_intermediaria[i][j] = 0
 
 
+def elitismo(pop, npop, pop_intermediaria, fit, dimensao, precisao):
+    fit_min = min(fit)
+    thebest.append(fit_min)
+    print(fit_min)
+    posicao = fit.index(fit_min)
+    index = random.randrange(0, npop-1)
+    #print(index)
+    pop_intermediaria[index] = pop[posicao][:]
+
+
 x_min = -2
 x_max = 2
 dimensao = 2
 precisao = 6
 
-npop = 6 #tamanho da população
-nger = 6 #numero de gerações
+npop = 100 #tamanho da população
+nger = 20 #numero de gerações
 nelite = 2
 pop = []
 pop_intermediaria = []
 
-pais = [] #se cada cruzamento gerar 2 filhos
 fit = []
+thebest = []
 
 pc = 1 #probabilidade de cruzamento
 pm = 0.1 #probabilidade de mutação
 cria_populacao_inicial(npop, pop, dimensao, precisao)
 
-for i in pop:
-    avaliacao(i)
+g=0
+while g < nger:
+    for i in pop:
+        avaliacao(i)
+    torneio(npop, fit)
+    elitismo(pop, npop, pop_intermediaria, fit, dimensao, precisao)
+    pop = pop_intermediaria
+    pop_intermediaria = []
+    fit = []
+    g += 1
 
-torneio(npop, fit)
+    # for i in pop:
+    #     print(i)
+    print('------------------------------------')
 
 
-for i in pop_intermediaria:
-    print(i)
 
+def plot(thebest):
+
+    fig = plt.figure()
+    ax =  plt.axes(projection='3d')
+
+    # Make data.
+    X = np.arange(-2, 2, 0.25)
+    Y = np.arange(-2, 2, 0.25)
+
+    Z = thebest
+
+    X, Y = np.meshgrid(X, Y)
+    Z = np.array(Z)
+
+    # Plot the surface.
+    surf = ax.plot_surface(X, Y, Z)
+
+    plt.show()
+
+plot(thebest)
