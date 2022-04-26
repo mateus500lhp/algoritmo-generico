@@ -4,10 +4,12 @@ import random
 from random import randrange, uniform
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 
 def func_obj(x):
 
 	n = float(len(x))
+	#f_exp = -0.2 * math.sqrt(1/n * sum(np.power(x, 2)))
 
 	t = 0
 	for i in range(0, len(x)):
@@ -37,38 +39,38 @@ def cria_populacao_inicial(npop, pop, dimensao, precisao):
 			pop[i].append(r)
 
 
-def torneio(npop, fit):
-    pv = 0.9
-    while(len(pop_intermediaria) < npop):
-        p1 = random.randrange(0,npop)
-        p2 = random.randrange(0, npop)
-        p3 = random.randrange(0,npop)
-        p4 = random.randrange(0, npop)
-        while(p1 == p2):
-            p2 = random.randrange(0, npop)
-        r = random.randrange(0, 1)
-        if (fit[p2] > fit[p1]):
-            vencedor1 = p1
-            if (r > pv):
-                vencedor1 = p2
-        else:
-            vencedor1 = p2
-            if (r > pv):
-                vencedor1 = p1
+# def torneio(npop, fit):
+#     pv = 0.9
+#     while(len(pop_intermediaria) < npop):
+#         p1 = random.randrange(0,npop)
+#         p2 = random.randrange(0, npop)
+#         p3 = random.randrange(0,npop)
+#         p4 = random.randrange(0, npop)
+#         while(p1 == p2):
+#             p2 = random.randrange(0, npop)
+#         r = random.randrange(0, 1)
+#         if (fit[p2] > fit[p1]):
+#             vencedor1 = p1
+#             if (r > pv):
+#                 vencedor1 = p2
+#         else:
+#             vencedor1 = p2
+#             if (r > pv):
+#                 vencedor1 = p1
 
-        while(p3 == p4):
-            p4 = random.randrange(0, npop)
-        r = random.randrange(0, 1)
-        if (fit[p4] > fit[p3]):
-            vencedor2 = p3
-            if (r > pv):
-                vencedor2 = p4
-        else:
-            vencedor2 = p4
-            if (r > pv):
-                vencedor2 = p3
+#         while(p3 == p4):
+#             p4 = random.randrange(0, npop)
+#         r = random.randrange(0, 1)
+#         if (fit[p4] > fit[p3]):
+#             vencedor2 = p3
+#             if (r > pv):
+#                 vencedor2 = p4
+#         else:
+#             vencedor2 = p4
+#             if (r > pv):
+#                 vencedor2 = p3
         
-        cruzamento(pop, npop ,pop_intermediaria, vencedor1, vencedor2, dimensao, precisao)
+#         cruzamento(pop, npop ,pop_intermediaria, vencedor1, vencedor2, dimensao, precisao)
 
 
 def selecao_roleta(pop, npop, fit, pop_intermediaria, roleta):
@@ -115,12 +117,35 @@ def selecao_roleta(pop, npop, fit, pop_intermediaria, roleta):
         cont += 1
 
 def cruzamento(cont, pop, npop, pop_intermediaria, vencedor1, vencedor2, dimensao, precisao):
-    for i in range(dimensao):
-        print(vencedor1, cont)
-        d = abs(pop[vencedor1][i] - pop[vencedor2][i])
+    #CRUZAMENTO ALFA
+    # for i in range(dimensao):
+    #     #print(vencedor1, cont)
+    #     d = abs(pop[vencedor1][i] - pop[vencedor2][i])
         
-        f1 = uniform(min(pop[vencedor1][i], pop[vencedor2][i]) - alfa * d, max(pop[vencedor1][i], pop[vencedor2][i]) + alfa * d)
-        pop_intermediaria[cont].append(f1)
+    #     f1 = uniform(min(pop[vencedor1][i], pop[vencedor2][i]) - alfa * d, max(pop[vencedor1][i], pop[vencedor2][i]) + alfa * d)
+    #     pop_intermediaria[cont].append(f1)
+
+    #CRUZAMENTO ALFA-BETA
+    if fit[vencedor1] < fit[vencedor2]:
+        for i in range(dimensao):
+            d = abs(pop[vencedor1][i] - pop[vencedor2][i])
+
+            if(pop[vencedor1][i] <= pop[vencedor2][i]):
+                f1 = uniform(pop[vencedor1][i] - alfa * d, pop[vencedor2][i] + beta * d)
+                pop_intermediaria[cont].append(f1)
+            else:
+                f1 = uniform(pop[vencedor2][i] - beta * d, pop[vencedor1][i] + alfa * d)
+                pop_intermediaria[cont].append(f1)
+    else:
+        for i in range(dimensao):
+            d = abs(pop[vencedor2][i] - pop[vencedor1][i])
+
+            if(pop[vencedor2][i] <= pop[vencedor1][i]):
+                f1 = uniform(pop[vencedor2][i] - alfa * d, pop[vencedor1][i] + beta * d)
+                pop_intermediaria[cont].append(f1)
+            else:
+                f1 = uniform(pop[vencedor1][i] - beta * d, pop[vencedor2][i] + alfa * d)
+                pop_intermediaria[cont].append(f1)
 
     #mutacao(pop_intermediaria, npop, pm, dimensao, precisao)
     
@@ -130,23 +155,34 @@ def mutacao(pop_intermediaria, npop, pm, dimensao, precisao):
         for j in range(0, precisao*dimensao-1):
             mutacao = random.random()
             if mutacao <= pm:
-                pop_intermediaria[i][j] == uniform(-2, 2):
+                pop_intermediaria[i][j] == uniform(-2, 2)
 
 
 
 def elitismo(pop, npop, pop_intermediaria, fit, dimensao, precisao):
     fit_min = min(fit)
-    thebest.append(fit_min)(somatorio_roleta < sortp2):
-                somatorio_roleta += i
-                vencedor2 = roleta.index(i)icao][:]
+    thebest.append(fit_min)
+    posicao = fit.index(fit_min)
+    index = random.randrange(0, npop-1)
+    #print(index)
+    pop_intermediaria[index] = pop[posicao][:]
 
+
+def arquivo():
+    with open('testes.csv', 'w', newline='') as file:
+        
+        writer = csv.writer(file)
+        
+        writer.writerow(["Valor fit"])
+        for i in thebest:
+            writer.writerow([i])
 
 x_min = -2
 x_max = 2
 dimensao = 3
 precisao = 1
 
-npop = 50 #tamanho da população
+npop = 100 #tamanho da população
 nger = 4 #numero de gerações
 nelite = 2
 pop = []
@@ -158,45 +194,29 @@ roleta = []
 
 pc = 1 #probabilidade de cruzamento
 pm = 0.1 #probabilidade de mutação
-alfa = 0.5
+alfa = 0.75
+beta = 0.25
 cria_populacao_inicial(npop, pop, dimensao, precisao)
 
-for i in pop:
-    print(i)
-
-for i in pop:
-    avaliacao(i)
-
-print('-----------------------------------------------------------------')
-
-for i in fit:
-    print(i)
-
-print('-----------------------------------------------------------------')
-
-selecao_roleta(pop, npop, fit, pop_intermediaria, roleta)
-
-for i in pop_intermediaria:
-    print(i)
-
+g=0
+while g < nger:
+    for i in pop:
+        avaliacao(i)
+    #torneio(npop, fit)
+    selecao_roleta(pop, npop, fit, pop_intermediaria, roleta)
+    elitismo(pop, npop, pop_intermediaria, fit, dimensao, precisao)
+    pop = pop_intermediaria
+    arquivo()
+    pop_intermediaria = []
+    fit = []
+    g += 1
+    
+    for i in pop:
+        print(i)
+    print('------------------------------------')
 
 
-# g=0
-# while g < nger:
-#     for i in pop:
-#         avaliacao(i)
-#    # torneio(npop, fit)
-#     selecao_roleta(pop, npop, fit, pop_intermediaria, roleta)
-#     elitismo(pop, npop, pop_intermediaria, fit, dimensao, precisao)
-#     pop = pop_intermediaria
-#     pop_intermediaria = []
-#     fit = []
-#     g += 1
-#     for i in pop:
-#         print(i)
-#     print('------------------------------------')
-
-# x = np.arange(1, nger+1,1)
-# plt.plot(x, thebest, 'k--')
-# plt.plot(x, thebest, 'go')
-# plt.show()
+x = np.arange(1, nger+1,1)
+plt.plot(x, thebest, 'k--')
+plt.plot(x, thebest, 'go')
+plt.show()
