@@ -132,22 +132,24 @@ def mutacao(pop_intermediaria, pm, M_len):
                 pop_intermediaria[i][muta] = aux
 
 
-def elitismo(pop, npop, pop_intermediaria, distancia, thebest):
+def elitismo(pop, npop, pop_intermediaria, distancia, thebest, index):
     distancia_min = min(distancia)
     thebest.append(distancia_min)
     posicao = distancia.index(distancia_min)
-    index = random.randrange(0, npop-1)
+    
     pop_intermediaria[index] = pop[posicao][:]
 
     return distancia_min
 
 
-def programa(npop, nger, pc, iteracao, pm):
+def programa(npop, nger, pc, iteracao, w, pm):
     pop = []
     pop_intermediaria = []
     thebest = []
     distancia = []
     roleta = []
+
+    index = random.randrange(0, npop-1)
 
     M_dist = np.loadtxt("./lau15_dist.txt", dtype="int")
     M_len = len(M_dist)
@@ -165,9 +167,9 @@ def programa(npop, nger, pc, iteracao, pm):
             distancia.append(func_obj(M_len, ind, M_dist))
 
         selecao_roleta(pop, npop, distancia, pop_intermediaria, roleta, pm, pc, M_len)
-        distancia_min = elitismo(pop, npop, pop_intermediaria, distancia, thebest)
+        distancia_min = elitismo(pop, npop, pop_intermediaria, distancia, thebest, index)
 
-    #w.writerow([iteracao, npop, nger, pc, pm, pop_intermediaria[index], distancia_min])
+        w.writerow([iteracao, npop, nger, pc, pm, pop_intermediaria[index], distancia_min])
 
         pop = pop_intermediaria[:]
         pop_intermediaria = []    
@@ -177,8 +179,8 @@ def programa(npop, nger, pc, iteracao, pm):
            print(i)
         print('------------------------------------')
 
-    print(distancia_min)
-    grafico(nger, distancia_min)
+    # print(distancia_min)
+    # grafico(nger, distancia_min)
 
 
 def start():
@@ -188,17 +190,16 @@ def start():
     pm = 0.1
 
     iteracao = 0
-    programa(npop, nger, pc, iteracao, pm)
-    # file = open('datas.csv', 'a', newline='')
+    file = open('datas.csv', 'a', newline='')
     
-    # w = csv.writer(file)
+    w = csv.writer(file)
 
-    # if Path('datas.csv').stat().st_size == 0:
-    #     w.writerow(["Iteracao", "Populacao", "NumGeracoes", "TaxaDeCruzamento", "ProbMutacao", "Individuo", "Valordistancia"])
+    if Path('datas.csv').stat().st_size == 0:
+        w.writerow(["Iteracao", "Populacao", "NumGeracoes", "TaxaDeCruzamento", "ProbMutacao", "Individuo", "Valordistancia"])
 
-    # for i in range(10):
-    #     programa(npop, nger, pc, iteracao, w, pm)
-    #     iteracao += 1
+    for i in range(10):
+        programa(npop, nger, pc, iteracao, w, pm)
+        iteracao += 1
 
 
 def grafico(nger, thebest):
