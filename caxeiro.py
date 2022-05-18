@@ -15,6 +15,45 @@ def func_obj(M_len, permutacao, M_dist):
 
     return distancia
 
+def torneio(pop, npop, distancia, pop_intermediaria, pm, pc, M_len):
+    pv = 0.9
+    while(len(pop_intermediaria) < npop):
+        p1 = random.randrange(0,npop)
+        p2 = random.randrange(0, npop)
+        p3 = random.randrange(0,npop)
+        p4 = random.randrange(0, npop)
+        while(p1 == p2):
+            p2 = random.randrange(0, npop)
+        r = random.randrange(0, 1)
+        if (distancia[p2] > distancia[p1]):
+            vencedor1 = p1
+            if (r > pv):
+                vencedor1 = p2
+        else:
+            vencedor1 = p2
+            if (r > pv):
+                vencedor1 = p1
+
+        while(p3 == p4):
+            p4 = random.randrange(0, npop)
+        r = random.randrange(0, 1)
+        if (distancia[p4] > distancia[p3]):
+            vencedor2 = p3
+            if (r > pv):
+                vencedor2 = p4
+        else:
+            vencedor2 = p4
+            if (r > pv):
+                vencedor2 = p3
+        
+        prob_cruzamento = random.random()
+        if prob_cruzamento <= pc:
+            cruzamento(pop, npop, pop_intermediaria, vencedor1, vencedor2, M_len)
+        else:
+            pop_intermediaria.append(pop[vencedor1])
+            pop_intermediaria.append(pop[vencedor2])
+    mutacao(pop_intermediaria, pm, M_len)
+
 
 def selecao_roleta(pop, npop, distancia, pop_intermediaria, roleta, pm, pc, M_len):
     distancia_aux = []
@@ -73,52 +112,89 @@ def cruzamento(pop, npop, pop_intermediaria, vencedor1, vencedor2, M_len):
         alelo1 = random.randrange(2, M_len-1)
         alelo2 = random.randrange(2, M_len-1)
 
-    filho1[alelo1:alelo2] = pop[vencedor1][alelo1:alelo2]
+    if alelo1 < alelo2:
 
-    tail = pop[vencedor2][alelo2:]
-    head = pop[vencedor2][:alelo2]
+        filho1[alelo1:alelo2] = pop[vencedor1][alelo1:alelo2]
 
-    tail = tail + head
+        tail = pop[vencedor2][alelo2:]
+        head = pop[vencedor2][:alelo2]
 
-    # print(tail)
-    # print("PAI 1: {}".format(pop[vencedor1]))
-    # print("PAI 2: {}".format(pop[vencedor2]))
-    # print("CALDA: {}".format(tail))
-    # print("CABEÇA: {}".format(head))
-    # print("filho 1: {}".format(filho1))
+        tail = tail + head
 
-    i = 0
-    j = alelo2
-    while i < len(tail):
-        if(tail[i] not in filho1):
-            filho1[j] = tail[i]
-            j += 1
-            if j == M_len:
-                j=0
-        i += 1
+        i = 0
+        j = alelo2
+        while i < len(tail):
+            if(tail[i] not in filho1):
+                filho1[j] = tail[i]
+                j += 1
+                if j == M_len:
+                    j=0
+            i += 1
 
-    pop_intermediaria.append(filho1)
-    # print("filho 1 eqweqwe: {}".format(filho1))
+        pop_intermediaria.append(filho1)
+        # print("filho 1 eqweqwe: {}".format(filho1))
 
-    filho2[alelo1:alelo2] = pop[vencedor2][alelo1:alelo2]
+        filho2[alelo1:alelo2] = pop[vencedor2][alelo1:alelo2]
 
-    tail = pop[vencedor1][alelo2:]
-    head = pop[vencedor1][:alelo2]
+        tail = pop[vencedor1][alelo2:]
+        head = pop[vencedor1][:alelo2]
 
-    tail = tail + head
+        tail = tail + head
 
-    i = 0
-    j = alelo2
-    while i < len(tail):
-        if(tail[i] not in filho2):
-            filho2[j] = tail[i]
-            j += 1
-            if j == M_len:
-                j=0
-        i += 1
+        i = 0
+        j = alelo2
+        while i < len(tail):
+            if(tail[i] not in filho2):
+                filho2[j] = tail[i]
+                j += 1
+                if j == M_len:
+                    j=0
+            i += 1
 
-    # print("filho 2 eqweqwe: {}".format(filho2))
-    pop_intermediaria.append(filho2)
+        # print("filho 2 eqweqwe: {}".format(filho2))
+        pop_intermediaria.append(filho2)
+
+    if alelo1 > alelo2:
+
+        filho1[alelo2:alelo1] = pop[vencedor1][alelo2:alelo1]
+
+        tail = pop[vencedor2][alelo1:]
+        head = pop[vencedor2][:alelo1]
+
+        tail = tail + head
+
+        i = 0
+        j = alelo1
+        while i < len(tail):
+            if(tail[i] not in filho1):
+                filho1[j] = tail[i]
+                j += 1
+                if j == M_len:
+                    j=0
+            i += 1
+
+        pop_intermediaria.append(filho1)
+        # print("filho 1 eqweqwe: {}".format(filho1))
+
+        filho2[alelo2:alelo1] = pop[vencedor2][alelo2:alelo1]
+
+        tail = pop[vencedor1][alelo1:]
+        head = pop[vencedor1][:alelo1]
+
+        tail = tail + head
+
+        i = 0
+        j = alelo1
+        while i < len(tail):
+            if(tail[i] not in filho2):
+                filho2[j] = tail[i]
+                j += 1
+                if j == M_len:
+                    j=0
+            i += 1
+
+        # print("filho 2 eqweqwe: {}".format(filho2))
+        pop_intermediaria.append(filho2)
 
 
 def mutacao(pop_intermediaria, pm, M_len):
@@ -136,7 +212,6 @@ def elitismo(pop, npop, pop_intermediaria, distancia, thebest, index):
     distancia_min = min(distancia)
     thebest.append(distancia_min)
     posicao = distancia.index(distancia_min)
-    
     pop_intermediaria[index] = pop[posicao][:]
 
     return distancia_min
@@ -166,7 +241,8 @@ def programa(npop, nger, pc, iteracao, w, pm):
         for ind in pop:
             distancia.append(func_obj(M_len, ind, M_dist))
 
-        selecao_roleta(pop, npop, distancia, pop_intermediaria, roleta, pm, pc, M_len)
+        torneio(pop, npop, distancia, pop_intermediaria, pm, pc, M_len)
+        # selecao_roleta(pop, npop, distancia, pop_intermediaria, roleta, pm, pc, M_len)
         distancia_min = elitismo(pop, npop, pop_intermediaria, distancia, thebest, index)
 
         w.writerow([iteracao, npop, nger, pc, pm, pop_intermediaria[index], distancia_min])
@@ -175,19 +251,19 @@ def programa(npop, nger, pc, iteracao, w, pm):
         pop_intermediaria = []    
         distancia = []
         g += 1
-        for i in pop:
-           print(i)
-        print('------------------------------------')
+        # for i in pop:
+        #    print(i)
+        # print('------------------------------------')
 
     # print(distancia_min)
     # grafico(nger, distancia_min)
 
 
 def start():
-    npop = 100
-    nger = 100
-    pc = 1.0
-    pm = 0.1
+    npop = 50
+    nger = 50
+    pc = 0.6
+    pm = 0.01
 
     iteracao = 0
     file = open('datas.csv', 'a', newline='')
