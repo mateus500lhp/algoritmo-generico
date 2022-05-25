@@ -1,7 +1,7 @@
 # coding: utf-8
 import math
 import random
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import csv
 from pathlib import Path
@@ -26,48 +26,33 @@ def criar_populacao_inicial(formigas, M_len):
                 formigas[i].append(-1)
 
 
-def probabilidade(formiga, M_len, M_fer, M_dist_inversa, alpha, beta, cont):
-    p = []
-    # somatorio = 0
-    # for j in range(M_len):
-    #     if j not in formiga:
-    #         somatorio = somatorio + pow(M_fer[cont][j],alpha) * pow(M_dist_inversa[cont][j], beta)
+def probabilidade(formiga, M_len, M_fer, M_dist_inversa, alpha, beta):
+    z = 1
+    while z < M_len :
+        p = []
+        cidades = []
 
-    for j in range(M_len):
-        if j not in formiga:
-            p.append(pow(M_fer[cont][j],alpha) * pow(M_dist_inversa[cont][j], beta))
-        else:
-            p.append(0)
-            
-
-    roleta = [x/sum(p) for x in p if x != 0]
-
-    # for i in roleta:
-    #     print(i)
-
-    
-    sort = random.random()
-    somatorio_roleta = 0
-    aux_roleta = 0
-    for i in roleta:
-        if(somatorio_roleta < sort):
-            somatorio_roleta += i
-            aux_roleta = roleta.index(i)
-
-    print(aux_roleta)
-
-    i = 0
-    while i < M_len:
-        if aux_roleta not in formiga:
-            if formiga[i] == -1:
-                formiga[i] = aux_roleta
-                i += 1
-            else:
-                i += 1
-        else:
-            i += 1
+        for j in range(M_len):
+            if j not in formiga:
+                cidades.append(j)
+                p.append(pow(M_fer[formiga[z-1]][j],alpha) * pow(M_dist_inversa[formiga[z-1]][j], beta))
+              
+        roleta = [x/sum(p) for x in p]
 
         
+        sort = random.random()
+        somatorio_roleta = 0
+        aux_roleta = 0
+        for r in roleta:
+            if(somatorio_roleta < sort):
+                somatorio_roleta += r
+                aux_roleta = roleta.index(r)
+
+        formiga[z] = cidades[aux_roleta]
+        z += 1
+
+
+#def atualiza_feromonio()
 
 def programa(npop, nger, pc, iteracao, pm):
     formigas = []
@@ -96,13 +81,13 @@ def programa(npop, nger, pc, iteracao, pm):
                 M_dist_inversa[i].append(0)
 
     criar_populacao_inicial(formigas, M_len)
-    cont = 0
-    for i in formigas:
-        probabilidade(i, M_len, M_fer, M_dist_inversa, alpha, beta, cont)
-        cont += 1
+    for f in formigas:
+        print(f)
+    for f in formigas:
+        probabilidade(f, M_len, M_fer, M_dist_inversa, alpha, beta)
 
-    for i in formigas:
-        print(i)
+    for f in formigas:
+        print(f)
 
     # i = 0
     # while i < npop:
@@ -156,10 +141,10 @@ def start():
     #     iteracao += 1
 
 
-def grafico(nger, thebest):
-    x = np.arange(1, nger+1,1)
-    plt.plot(x, thebest, 'k--')
-    plt.plot(x, thebest, 'go')
-    plt.show()
+# def grafico(nger, thebest):
+#     x = np.arange(1, nger+1,1)
+#     plt.plot(x, thebest, 'k--')
+#     plt.plot(x, thebest, 'go')
+#     plt.show()
 
 start()
