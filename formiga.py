@@ -16,15 +16,57 @@ def func_obj(M_len, permutacao, M_dist):
     return distancia
 
 def criar_populacao_inicial(formigas, M_len):
-    cont = 0
+    index = random.sample(range(0, M_len), M_len)
     for i in range(M_len):
         formigas.append([])
         for j in range(M_len):
-            if j == cont:
-                formigas[i].append(1)
+            if j == 0:
+                formigas[i].append(index[i])
             else:
-                formigas[i].append(0)
-        cont += 1
+                formigas[i].append(-1)
+
+
+def probabilidade(formiga, M_len, M_fer, M_dist_inversa, alpha, beta, cont):
+    p = []
+    # somatorio = 0
+    # for j in range(M_len):
+    #     if j not in formiga:
+    #         somatorio = somatorio + pow(M_fer[cont][j],alpha) * pow(M_dist_inversa[cont][j], beta)
+
+    for j in range(M_len):
+        if j not in formiga:
+            p.append(pow(M_fer[cont][j],alpha) * pow(M_dist_inversa[cont][j], beta))
+        else:
+            p.append(0)
+            
+
+    roleta = [x/sum(p) for x in p if x != 0]
+
+    # for i in roleta:
+    #     print(i)
+
+    
+    sort = random.random()
+    somatorio_roleta = 0
+    aux_roleta = 0
+    for i in roleta:
+        if(somatorio_roleta < sort):
+            somatorio_roleta += i
+            aux_roleta = roleta.index(i)
+
+    print(aux_roleta)
+
+    i = 0
+    while i < M_len:
+        if aux_roleta not in formiga:
+            if formiga[i] == -1:
+                formiga[i] = aux_roleta
+                i += 1
+            else:
+                i += 1
+        else:
+            i += 1
+
         
 
 def programa(npop, nger, pc, iteracao, pm):
@@ -33,6 +75,8 @@ def programa(npop, nger, pc, iteracao, pm):
     thebest = []
     distancia = []
     roleta = []
+    alpha = 1
+    beta = 5
 
     index = random.randrange(0, npop-1)
 
@@ -41,7 +85,21 @@ def programa(npop, nger, pc, iteracao, pm):
 
     M_fer = [[ pow(10, -16) for i in range(M_len)] for j in range(M_len) ]
 
+    M_dist_inversa = []
+
+    for i in range(M_len):
+        M_dist_inversa.append([])
+        for j in range(M_len):
+            if i != j:
+                M_dist_inversa[i].append(1/M_dist[i][j])
+            else:
+                M_dist_inversa[i].append(0)
+
     criar_populacao_inicial(formigas, M_len)
+    cont = 0
+    for i in formigas:
+        probabilidade(i, M_len, M_fer, M_dist_inversa, alpha, beta, cont)
+        cont += 1
 
     for i in formigas:
         print(i)
