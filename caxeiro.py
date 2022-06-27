@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 from pathlib import Path
+import time
 
 def func_obj(M_len, permutacao, M_dist):
     distancia = 0
@@ -52,22 +53,63 @@ def torneio(pop, npop, distancia, pop_intermediaria, pm, pc, M_len):
         else:
             pop_intermediaria.append(pop[vencedor1])
             pop_intermediaria.append(pop[vencedor2])
-    mutacao(pop_intermediaria, pm, M_len)
+    mutacao(npop, pm, M_len, pop_intermediaria)
+
+def selecaoRoleta(populacao, individuo_fit, pop_intermediaria, tamanho_populacao,
+                  taxa_cruzamento,num_city, pm):
+    aux_fitness = []
+    roleta = []
+
+    for ind in individuo_fit:
+        aux_fitness.append(1 / ind)
+
+    pfitness = sum(aux_fitness)
+
+    for ind in aux_fitness:
+        roleta.append(ind / pfitness)
+
+    while (len(pop_intermediaria) < tamanho_populacao):
+
+        auxroleta = 0
+        pai1 = 0
+        pai2 = 0
+        sort1 = random.uniform(0,pfitness)
+        sort2 = random.uniform(0,pfitness)
+
+        for i in roleta:
+            if auxroleta < sort1:
+                auxroleta += i
+                pai1 = roleta.index(i)
+
+        auxroleta = 0
+
+        for i in roleta:
+            if auxroleta < sort2:
+                auxroleta += i
+                pai2 = roleta.index(i)
+
+        if (pai1 != pai2):
+            prob_sort = random.random()
+            if (taxa_cruzamento >= prob_sort):
+                # cruzamento(pop, npop, pop_intermediaria, vencedor1, vencedor2, M_len)
+                cruzamento(populacao, tamanho_populacao, pop_intermediaria, pai1, pai2, num_city)
+    mutacao(tamanho_populacao, pm, num_city, pop_intermediaria)
 
 
 def selecao_roleta(pop, npop, distancia, pop_intermediaria, roleta, pm, pc, M_len):
     distancia_aux = []
     roleta = []
     cont = 0
+    for i in distancia:
+        distancia_aux.append(1/i)
+
+    sum_distancia = sum(distancia_aux)
+
+    for i in distancia_aux:
+        roleta.append(i/sum_distancia)
     while(len(pop_intermediaria) < npop):
 
-        for i in distancia:
-            distancia_aux.append(1/i)
 
-        sum_distancia = sum(distancia_aux)
-
-        for i in distancia_aux:
-            roleta.append(i/sum_distancia)
 
         sortp1 = random.random()
         sortp2 = random.random()
@@ -98,7 +140,7 @@ def selecao_roleta(pop, npop, distancia, pop_intermediaria, roleta, pm, pc, M_le
             cruzamento(pop, npop, pop_intermediaria, vencedor1, vencedor2, M_len)
         else:
             pop_intermediaria.append(pop[vencedor1])
-    mutacao(pop_intermediaria, pm, M_len)
+    mutacao(npop, pm, M_len, pop_intermediaria)
 
 
 def cruzamento(pop, npop, pop_intermediaria, vencedor1, vencedor2, M_len):
@@ -196,17 +238,25 @@ def cruzamento(pop, npop, pop_intermediaria, vencedor1, vencedor2, M_len):
         # print("filho 2 eqweqwe: {}".format(filho2))
         pop_intermediaria.append(filho2)
 
+def mutacao(tamanho_populacao, taxa_mutacao, num_city, populacao_intermediaria):
+    # para realizar a mutacao precisamos percorrer por toda a populacao_intermediaria
+    for i in range(tamanho_populacao):
+        mutacao = random.random()
+        # sorteio uma taxa de mutação
+        if mutacao <= taxa_mutacao:  # sematriz_distancia minha taxa for igual ou menor que minha taxa de mutação
+            mutacao1 = random.randrange(0, num_city)
+            for j in range(mutacao1):
+                troca1 = random.randrange(0, num_city)
+                troca2 = random.randrange(0, num_city)
 
-def mutacao(pop_intermediaria, pm, M_len):
-    for i in range(0, len(pop_intermediaria)):
-        for j in range(0, M_len):
-            mutacao = random.random()
-            if mutacao <= pm:
-                muta = random.randrange(0, M_len)
-                aux = pop_intermediaria[i][j]
-                pop_intermediaria[i][j] = pop_intermediaria[i][muta]
-                pop_intermediaria[i][muta] = aux
+                while troca1 == troca2:
+                    troca1 = random.randrange(0, num_city)
+                    troca2 = random.randrange(0, num_city)
 
+                if troca1 != troca2:
+                    aux = populacao_intermediaria[i][troca1]
+                    populacao_intermediaria[i][troca1] = populacao_intermediaria[i][troca2]
+                    populacao_intermediaria[i][troca2] = aux
 
 def elitismo(pop, npop, pop_intermediaria, distancia, thebest, index):
     distancia_min = min(distancia)
@@ -217,7 +267,7 @@ def elitismo(pop, npop, pop_intermediaria, distancia, thebest, index):
     return distancia_min
 
 
-def programa(npop, nger, pc, iteracao, w, pm):
+def programa(npop, nger, pc, iteracao, w, pm, w2):
     pop = []
     pop_intermediaria = []
     thebest = []
@@ -236,52 +286,69 @@ def programa(npop, nger, pc, iteracao, w, pm):
         pop.append(aux)
         i += 1
 
-    g=0
+    pop_torneio = pop
+    pop_roleta = pop_torneio
+    
+    pop_intermediaria_torneio = pop_intermediaria
+    pop_intermediaria_roleta = pop_intermediaria_torneio
+
+    g = 0
     while g < nger:
-        for ind in pop:
+        for ind in pop_roleta:
             distancia.append(func_obj(M_len, ind, M_dist))
 
-        torneio(pop, npop, distancia, pop_intermediaria, pm, pc, M_len)
-        # selecao_roleta(pop, npop, distancia, pop_intermediaria, roleta, pm, pc, M_len)
-        distancia_min = elitismo(pop, npop, pop_intermediaria, distancia, thebest, index)
+        # torneio(pop, npop, distancia, pop_intermediaria, pm, pc, M_len)
+        tempo_inicial_r = time.time()
+        # selecaoRoleta(pop_roleta, distancia, pop_intermediaria_roleta, npop,pc,M_len, pm)
+        tempo_final_r = (time.time() - tempo_inicial_r)
+        selecao_roleta(pop_roleta, npop, distancia, pop_intermediaria_roleta, roleta, pm, pc, M_len)
+        tempo_final_r = (time.time() - tempo_inicial_r)
+        distancia_min = elitismo(pop_roleta, npop, pop_intermediaria_roleta, distancia, thebest, index)
 
-        w.writerow([iteracao, npop, nger, pc, pm, pop_intermediaria[index], distancia_min])
+        w.writerow([iteracao,'Roleta', npop, nger, pc, pm, pop_intermediaria_roleta[index], distancia_min, tempo_final_r])
 
-        pop = pop_intermediaria[:]
-        pop_intermediaria = []    
+        pop_roleta = pop_intermediaria_roleta[:]
+        pop_intermediaria_roleta = []    
         distancia = []
         g += 1
-        # for i in pop:
-        #    print(i)
-        # print('------------------------------------')
 
-    # print(distancia_min)
-    # grafico(nger, distancia_min)
+    z = 0
+    while z < nger:
+        for ind in pop_torneio:
+            distancia.append(func_obj(M_len, ind, M_dist))
+
+        tempo_inicial_t = time.time()
+        torneio(pop_torneio, npop, distancia, pop_intermediaria_torneio, pm, pc, M_len)
+        tempo_final_t = (time.time() - tempo_inicial_t)
+        distancia_min = elitismo(pop_torneio, npop, pop_intermediaria_torneio, distancia, thebest, index)
+
+        w2.writerow([iteracao,'Torneio', npop, nger, pc, pm, pop_intermediaria_torneio[index], distancia_min, tempo_final_t])
+
+        pop_torneio = pop_intermediaria_torneio[:]
+        pop_intermediaria_torneio = []    
+        distancia = []
+        z += 1
 
 
 def start():
-    npop = 50
-    nger = 50
+    npop = 25
+    nger = 25
     pc = 0.6
     pm = 0.01
 
+
     iteracao = 0
-    file = open('datas.csv', 'a', newline='')
+    file = open('datas3.csv', 'a', newline='')
+    file2 = open('datas4.csv', 'a', newline='')
     
     w = csv.writer(file)
+    w2 = csv.writer(file2)
 
     if Path('datas.csv').stat().st_size == 0:
-        w.writerow(["Iteracao", "Populacao", "NumGeracoes", "TaxaDeCruzamento", "ProbMutacao", "Individuo", "Valordistancia"])
+        w.writerow(["Iteracao", "TipoSelecao", "Populacao", "NumGeracoes", "TaxaDeCruzamento", "ProbMutacao", "Individuo", "Valordistancia", "TempoFinal"])
 
     for i in range(10):
-        programa(npop, nger, pc, iteracao, w, pm)
+        programa(npop, nger, pc, iteracao, w, pm, w2)
         iteracao += 1
-
-
-def grafico(nger, thebest):
-    x = np.arange(1, nger+1,1)
-    plt.plot(x, thebest, 'k--')
-    plt.plot(x, thebest, 'go')
-    plt.show()
 
 start()
